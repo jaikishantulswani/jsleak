@@ -16,19 +16,22 @@ import (
 	"strings"
 )
 
-var httpClient = &http.Client{
-	CheckRedirect: func(req *http.Request, via []*http.Request) error {
-		return http.ErrUseLastResponse
-	},
-	Transport: &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		DialContext: (&net.Dialer{
-			Timeout:   30 * time.Second,
-			KeepAlive: time.Second,
-			DualStack: true,
-		}).DialContext,
-	},
-}
+var (
+    httpClient = &http.Client{
+        CheckRedirect: func(req *http.Request, via []*http.Request) error {
+            return http.ErrUseLastResponse
+        },
+        Transport: &http.Transport{
+            TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+            DialContext: (&net.Dialer{
+                Timeout:   30 * time.Second,
+                KeepAlive: time.Second,
+                DualStack: true,
+            }).DialContext,
+        },
+    }
+    enableSecretFinder bool
+)
 
 func request(fullurl string, statusCode bool) string {
 	req, err := http.NewRequest("GET", fullurl, nil)
@@ -250,9 +253,10 @@ func linkFinder(content, baseURL string, completeURL, statusCode bool) {
         } else {
             fmt.Printf("[+] Found link: [%s] in [%s] \n", link.String(),  base.String())
         }
+
+        regexGrep(request(link.String(), false), link.String())
     }
 }
-
 
 func main() {
 	var concurrency int
